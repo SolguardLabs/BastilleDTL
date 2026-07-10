@@ -1,0 +1,19 @@
+{
+  "name": "bastilledtl",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "go build -o bin/bastilledtl ./cmd/bastilledtl",
+    "test": "tsx --test \"tests/node/*.test.ts\"",
+    "check": "tsc --noEmit",
+    "loc": "node scripts/check-loc.mjs",
+    "ci": "bash scripts/ci.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

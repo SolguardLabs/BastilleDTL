@@ -1,0 +1,45 @@
+{
+  "name": "roles",
+  "actions": [
+    {
+      "type": "approve",
+      "label": "auditor-approval",
+      "expectError": "permission_denied",
+      "approval": {
+        "signerId": "signer:carol",
+        "decision": "approve",
+        "operation": {
+          "id": "op:roles:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 90000,
+          "requestedBy": "user:ops",
+          "memo": "role rejection"
+        }
+      }
+    },
+    {
+      "type": "approve",
+      "label": "alice-approval",
+      "approval": {
+        "signerId": "signer:alice",
+        "decision": "approve",
+        "operation": {
+          "id": "op:roles:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 90000,
+          "requestedBy": "user:ops",
+          "memo": "role accepted"
+        }
+      }
+    },
+    { "type": "snapshot", "label": "snapshot" }
+  ]
+}

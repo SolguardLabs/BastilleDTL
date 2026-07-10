@@ -1,0 +1,65 @@
+{
+  "name": "signer rotation",
+  "actions": [
+    { "type": "advance", "label": "advance", "delta": 2 },
+    {
+      "type": "rotate",
+      "label": "rotate-alice",
+      "rotation": {
+        "retire": "signer:alice",
+        "actor": "user:risk",
+        "reason": "quarterly key rotation",
+        "activate": {
+          "id": "signer:diana",
+          "institution": "inst:alpha",
+          "principal": "user:treasury",
+          "role": "treasurer",
+          "status": "active",
+          "weight": 1,
+          "maxAmount": 900000,
+          "rotationGroup": "A"
+        }
+      }
+    },
+    {
+      "type": "approve",
+      "label": "old-alice-approval",
+      "expectError": "signer_inactive",
+      "approval": {
+        "signerId": "signer:alice",
+        "decision": "approve",
+        "operation": {
+          "id": "op:rotation:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 100000,
+          "requestedBy": "user:ops",
+          "memo": "retired signer should fail"
+        }
+      }
+    },
+    {
+      "type": "approve",
+      "label": "diana-approval",
+      "approval": {
+        "signerId": "signer:diana",
+        "decision": "approve",
+        "operation": {
+          "id": "op:rotation:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 100000,
+          "requestedBy": "user:ops",
+          "memo": "new signer should pass"
+        }
+      }
+    },
+    { "type": "snapshot", "label": "snapshot" }
+  ]
+}

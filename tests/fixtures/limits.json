@@ -1,0 +1,23 @@
+{
+  "name": "limits",
+  "actions": [
+    {
+      "type": "execute",
+      "label": "oversized-withdrawal",
+      "expectError": "limit_exceeded",
+      "operation": {
+        "id": "op:limits:too-large",
+        "institution": "inst:alpha",
+        "kind": "withdrawal",
+        "sourceAccount": "acct:alpha:operating",
+        "externalBeneficiary": "beneficiary:large-outflow",
+        "externalRail": "swift",
+        "asset": "usdc",
+        "amount": 800000,
+        "requestedBy": "user:ops",
+        "memo": "beyond withdrawal cap"
+      }
+    },
+    { "type": "snapshot", "label": "snapshot" }
+  ]
+}

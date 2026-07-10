@@ -1,0 +1,78 @@
+{
+  "name": "withdrawal approval reuse",
+  "actions": [
+    {
+      "type": "approve",
+      "label": "alice-internal",
+      "approval": {
+        "signerId": "signer:alice",
+        "decision": "approve",
+        "operation": {
+          "id": "op:reuse:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 120000,
+          "requestedBy": "user:ops",
+          "memo": "legitimate internal rebalance"
+        }
+      }
+    },
+    {
+      "type": "approve",
+      "label": "bob-internal",
+      "approval": {
+        "signerId": "signer:bob",
+        "decision": "approve",
+        "operation": {
+          "id": "op:reuse:internal",
+          "institution": "inst:alpha",
+          "kind": "internal",
+          "sourceAccount": "acct:alpha:operating",
+          "destinationAccount": "acct:alpha:reserve",
+          "asset": "usdc",
+          "amount": 120000,
+          "requestedBy": "user:ops",
+          "memo": "legitimate internal rebalance"
+        }
+      }
+    },
+    {
+      "type": "execute",
+      "label": "execute-internal",
+      "approvalRefs": ["alice-internal", "bob-internal"],
+      "operation": {
+        "id": "op:reuse:internal",
+        "institution": "inst:alpha",
+        "kind": "internal",
+        "sourceAccount": "acct:alpha:operating",
+        "destinationAccount": "acct:alpha:reserve",
+        "asset": "usdc",
+        "amount": 120000,
+        "requestedBy": "user:ops",
+        "memo": "legitimate internal rebalance"
+      }
+    },
+    {
+      "type": "execute",
+      "label": "execute-external",
+      "approvalRefs": ["alice-internal", "bob-internal"],
+      "operation": {
+        "id": "op:reuse:external",
+        "institution": "inst:alpha",
+        "kind": "withdrawal",
+        "sourceAccount": "acct:alpha:operating",
+        "externalBeneficiary": "beneficiary:outside-bank",
+        "externalRail": "swift",
+        "asset": "usdc",
+        "amount": 120000,
+        "requestedBy": "user:ops",
+        "memo": "fields omitted from partial hash"
+      }
+    },
+    { "type": "snapshot", "label": "snapshot" },
+    { "type": "report", "label": "report" }
+  ]
+}
