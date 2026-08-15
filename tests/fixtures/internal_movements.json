@@ -1,61 +1,61 @@
 {
-  "name": "internal movements",
-  "actions": [
-    {
-      "type": "approve",
-      "label": "alice",
-      "approval": {
-        "signerId": "signer:alice",
-        "decision": "approve",
-        "operation": {
-          "id": "op:internal:rebalance",
-          "institution": "inst:alpha",
-          "kind": "internal",
-          "sourceAccount": "acct:alpha:operating",
-          "destinationAccount": "acct:alpha:reserve",
-          "asset": "usdc",
-          "amount": 120000,
-          "requestedBy": "user:ops",
-          "memo": "reserve top up"
-        }
-      }
-    },
-    {
-      "type": "approve",
-      "label": "bob",
-      "approval": {
-        "signerId": "signer:bob",
-        "decision": "approve",
-        "operation": {
-          "id": "op:internal:rebalance",
-          "institution": "inst:alpha",
-          "kind": "internal",
-          "sourceAccount": "acct:alpha:operating",
-          "destinationAccount": "acct:alpha:reserve",
-          "asset": "usdc",
-          "amount": 120000,
-          "requestedBy": "user:ops",
-          "memo": "reserve top up"
-        }
-      }
-    },
-    {
-      "type": "execute",
-      "label": "execute-internal",
-      "approvalRefs": ["alice", "bob"],
-      "operation": {
-        "id": "op:internal:rebalance",
-        "institution": "inst:alpha",
-        "kind": "internal",
-        "sourceAccount": "acct:alpha:operating",
-        "destinationAccount": "acct:alpha:reserve",
-        "asset": "usdc",
-        "amount": 120000,
-        "requestedBy": "user:ops",
-        "memo": "reserve top up"
-      }
-    },
-    { "type": "snapshot", "label": "snapshot" },
-    { "type": "report", "label": "report" }
-  ]
+    "name": "internal movements",
+    "actions": [
+        {
+            "type": "approve",
+            "label": "alice",
+            "approval": {
+                "signerId": "signer:alice",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:internal:rebalance",
+                    "institution": "inst:alpha",
+                    "kind": "internal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "destinationAccount": "acct:alpha:reserve",
+                    "asset": "usdc",
+                    "amount": 120000,
+                    "requestedBy": "user:ops",
+                    "memo": "reserve top up"
+                }
+            }
+        },
+        {
+            "type": "approve",
+            "label": "bob",
+            "approval": {
+                "signerId": "signer:bob",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:internal:rebalance",
+                    "institution": "inst:alpha",
+                    "kind": "internal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "destinationAccount": "acct:alpha:reserve",
+                    "asset": "usdc",
+                    "amount": 120000,
+                    "requestedBy": "user:ops",
+                    "memo": "reserve top up"
+                }
+            }
+        },
+        {
+            "type": "execute",
+            "label": "execute-internal",
+            "approvalRefs": ["alice", "bob"],
+            "operation": {
+                "id": "op:internal:rebalance",
+                "institution": "inst:alpha",
+                "kind": "internal",
+                "sourceAccount": "acct:alpha:operating",
+                "destinationAccount": "acct:alpha:reserve",
+                "asset": "usdc",
+                "amount": 120000,
+                "requestedBy": "user:ops",
+                "memo": "reserve top up"
+            }
+        },
+        { "type": "snapshot", "label": "snapshot" },
+        { "type": "report", "label": "report" }
+    ]
 }

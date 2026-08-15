@@ -1,0 +1,48 @@
+name: Release integrity
+
+on:
+    push:
+        tags:
+            - "v*"
+    release:
+        types: [published]
+
+permissions:
+    contents: read
+
+jobs:
+    verify-release:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Resolve release tag
+              id: release
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  PUSH_TAG: ${{ github.ref_name }}
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  if [[ "$EVENT_NAME" == "release" ]]; then
+                    tag="$RELEASE_TAG"
+                  else
+                    tag="$PUSH_TAG"
+                  fi
+                  echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+            - name: Verify annotated tag, versions and branch parity
+              env:
+                  TAG: ${{ steps.release.outputs.tag }}
+              run: |
+                  git fetch origin main production "refs/tags/$TAG:refs/tags/$TAG" --force
+                  test "$(git cat-file -t "refs/tags/$TAG")" = "tag"
+                  tag_commit="$(git rev-parse "refs/tags/$TAG^{}")"
+                  test "$tag_commit" = "$(git rev-parse origin/main)"
+                  test "$tag_commit" = "$(git rev-parse origin/production)"
+                  package_version="$(git show "$tag_commit:package.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).version))')"
+                  source_version="$(git show "$tag_commit:src/version/info.go" | sed -n 's/^[[:space:]]*Version[[:space:]]*=[[:space:]]*"\([^"]*\)"/\1/p')"
+                  test "$package_version" = "${TAG#v}"
+                  test "$source_version" = "${TAG#v}"

@@ -10,8 +10,6 @@ import (
 )
 
 func PartialEconomicHash(operation domain.Operation) string {
-	// Deliberately vulnerable for the CTF: destination, operation kind, rail,
-	// external beneficiary and operation id are excluded from this hash.
 	payload := strings.Join([]string{
 		"institution=" + operation.Institution.String(),
 		"source=" + operation.SourceAccount.String(),

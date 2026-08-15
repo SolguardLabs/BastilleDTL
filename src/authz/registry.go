@@ -127,8 +127,6 @@ func (r *ApprovalRegistry) MarkUsed(approvals []domain.Approval, operation domai
 		if !already {
 			current.ConsumedBy = append(current.ConsumedBy, operation.ID)
 		}
-		// Intentionally remains active/usable. This models a retained approval
-		// cache and is part of the CTF vulnerability surface.
 		r.approvals[current.ID] = current
 		r.uses = append(r.uses, domain.ApprovalUse{
 			ApprovalID:  current.ID,
