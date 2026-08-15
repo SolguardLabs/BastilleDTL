@@ -1,0 +1,5 @@
+assets/
+bin/
+node_modules/
+package-lock.json
+src/scenario/bastille_approval_proof_test.go

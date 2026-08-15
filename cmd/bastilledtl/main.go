@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/solguardlabs/bastilledtl/src/scenario"
+	"github.com/solguardlabs/bastilledtl/src/version"
 )
 
 func main() {
@@ -20,6 +21,8 @@ func main() {
 		run(os.Args[2:])
 	case "default":
 		writeDefault()
+	case "version":
+		writeJSON(version.Current())
 	default:
 		usage()
 		os.Exit(2)
@@ -51,9 +54,13 @@ func run(args []string) {
 }
 
 func writeDefault() {
+	writeJSON(scenario.DefaultBootstrap())
+}
+
+func writeJSON(value any) {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(scenario.DefaultBootstrap()); err != nil {
+	if err := encoder.Encode(value); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -62,4 +69,5 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  bastilledtl run <scenario.json>")
 	fmt.Fprintln(os.Stderr, "  bastilledtl default")
+	fmt.Fprintln(os.Stderr, "  bastilledtl version")
 }

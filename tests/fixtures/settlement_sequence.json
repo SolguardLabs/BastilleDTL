@@ -1,0 +1,118 @@
+{
+    "name": "independent settlement sequence",
+    "actions": [
+        {
+            "type": "approve",
+            "label": "alice-internal",
+            "approval": {
+                "signerId": "signer:alice",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:sequence:internal",
+                    "institution": "inst:alpha",
+                    "kind": "internal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "destinationAccount": "acct:alpha:reserve",
+                    "asset": "usdc",
+                    "amount": 120000,
+                    "requestedBy": "user:ops",
+                    "memo": "scheduled reserve allocation"
+                }
+            }
+        },
+        {
+            "type": "approve",
+            "label": "bob-internal",
+            "approval": {
+                "signerId": "signer:bob",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:sequence:internal",
+                    "institution": "inst:alpha",
+                    "kind": "internal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "destinationAccount": "acct:alpha:reserve",
+                    "asset": "usdc",
+                    "amount": 120000,
+                    "requestedBy": "user:ops",
+                    "memo": "scheduled reserve allocation"
+                }
+            }
+        },
+        {
+            "type": "execute",
+            "label": "execute-internal",
+            "approvalRefs": ["alice-internal", "bob-internal"],
+            "operation": {
+                "id": "op:sequence:internal",
+                "institution": "inst:alpha",
+                "kind": "internal",
+                "sourceAccount": "acct:alpha:operating",
+                "destinationAccount": "acct:alpha:reserve",
+                "asset": "usdc",
+                "amount": 120000,
+                "requestedBy": "user:ops",
+                "memo": "scheduled reserve allocation"
+            }
+        },
+        {
+            "type": "approve",
+            "label": "alice-withdrawal",
+            "approval": {
+                "signerId": "signer:alice",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:sequence:withdrawal",
+                    "institution": "inst:alpha",
+                    "kind": "withdrawal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "externalBeneficiary": "beneficiary:clearing-bank",
+                    "externalRail": "sepa",
+                    "asset": "usdc",
+                    "amount": 80000,
+                    "requestedBy": "user:ops",
+                    "memo": "approved clearing instruction"
+                }
+            }
+        },
+        {
+            "type": "approve",
+            "label": "bob-withdrawal",
+            "approval": {
+                "signerId": "signer:bob",
+                "decision": "approve",
+                "operation": {
+                    "id": "op:sequence:withdrawal",
+                    "institution": "inst:alpha",
+                    "kind": "withdrawal",
+                    "sourceAccount": "acct:alpha:operating",
+                    "externalBeneficiary": "beneficiary:clearing-bank",
+                    "externalRail": "sepa",
+                    "asset": "usdc",
+                    "amount": 80000,
+                    "requestedBy": "user:ops",
+                    "memo": "approved clearing instruction"
+                }
+            }
+        },
+        {
+            "type": "execute",
+            "label": "execute-withdrawal",
+            "approvalRefs": ["alice-withdrawal", "bob-withdrawal"],
+            "operation": {
+                "id": "op:sequence:withdrawal",
+                "institution": "inst:alpha",
+                "kind": "withdrawal",
+                "sourceAccount": "acct:alpha:operating",
+                "externalBeneficiary": "beneficiary:clearing-bank",
+                "externalRail": "sepa",
+                "asset": "usdc",
+                "amount": 80000,
+                "requestedBy": "user:ops",
+                "memo": "approved clearing instruction"
+            }
+        },
+        { "type": "snapshot", "label": "snapshot" },
+        { "type": "report", "label": "report" }
+    ]
+}
