@@ -127,6 +127,7 @@ func (r *ApprovalRegistry) MarkUsed(approvals []domain.Approval, operation domai
 		if !already {
 			current.ConsumedBy = append(current.ConsumedBy, operation.ID)
 		}
+		current.Status = domain.ApprovalConsumed
 		r.approvals[current.ID] = current
 		r.uses = append(r.uses, domain.ApprovalUse{
 			ApprovalID:  current.ID,

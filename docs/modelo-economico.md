@@ -193,6 +193,11 @@ remaining   = configuredCap - railGross
 El plan conserva la señal aunque otras capas dispongan de saldo. Un exceso de
 cap o cuota hace `Ready=false`.
 
+La salida real consulta también la
+[admisión de reserva intradía](reserva-intradia.md). Esa puerta trabaja sobre
+operaciones ya confirmadas en la época y se evalúa antes de cada débito
+externo; `Planner.Preview` sigue siendo la vista de una ventana completa.
+
 ## Diagrama económico
 
 ```mermaid

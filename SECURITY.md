@@ -7,10 +7,11 @@ comunicar un hallazgo de seguridad.
 
 ## Versiones mantenidas
 
-| Versión | Estado     | Actualizaciones de seguridad |
-| ------- | ---------- | ---------------------------- |
-| `1.0.x` | Producción | Sí                           |
-| `< 1.0` | Histórica  | No                           |
+| Versión | Estado       | Actualizaciones de seguridad |
+| ------- | ------------ | ---------------------------- |
+| `2.x`   | Producción   | Sí                           |
+| `1.x`   | Histórica    | Según política de soporte    |
+| `< 1.0` | No mantenida | No                           |
 
 La referencia operativa es la etiqueta anotada más reciente cuya suite CI e
 integridad de release hayan finalizado correctamente.
@@ -109,15 +110,16 @@ operationBound
 reuseDetected
 ```
 
-Los consumidores que apliquen una política adicional deben exigir
-`operationBound == true` y tratar cualquier señal de auditoría como motivo de
-contención. Los hashes, IDs y signer IDs deben conservarse con el receipt.
+El servicio exige `operationBound == true` antes de ejecutar y consume las
+aprobaciones utilizadas. Los consumidores pueden aplicar políticas más
+restrictivas y deben conservar hashes, IDs y signer IDs con el receipt.
 
 ### Vigencia
 
-Una aprobación debe estar activa, expresar una decisión positiva y no superar
-`ExpiresEpoch`. La rotación retira una identidad anterior y activa una nueva en
-el epoch autorizado.
+Una aprobación debe estar activa, expresar una decisión positiva, pertenecer
+al ID y hash completos de la operación y no superar `ExpiresEpoch`. Tras
+ejecutar queda consumida. La rotación retira una identidad anterior y activa
+una nueva en el epoch autorizado.
 
 ## Controles económicos
 
@@ -160,6 +162,11 @@ stressedReserve(asset) <= availableReserve(asset)
 railGross(rail) <= configuredCap(rail)
 railShareBps(rail) <= maxRailShareBps
 ```
+
+Además, la salida externa se somete a una admisión de reserva en la ruta de
+ejecución. Rechazar por reserva no debita el ledger ni consume caps. El receipt
+de una retirada aceptada conserva la estimación y la reserva disponible en
+`reserveStress`; esta señal no sustituye la conciliación de ventanas completas.
 
 ## Gobierno criptográfico
 
@@ -214,7 +221,7 @@ solo puede votar una vez por acción.
 ## Invariantes de revisión
 
 1. Ningún balance disponible o reservado es negativo.
-2. Un retiro no supera saldo ni caps aplicables.
+2. Un retiro no supera saldo, caps ni reserva operativa aplicable.
 3. Una transferencia interna acredita exactamente lo debitado.
 4. Un firmante inactivo no aporta peso.
 5. Una aprobación expirada no forma parte del bundle aceptado.
@@ -238,7 +245,7 @@ PowerShell:
 
 La publicación requiere además:
 
-- `main`, `production` y `v1.0.0^{}` en el mismo commit;
+- `main`, `production` y `v2.0.0^{}` en el mismo commit;
 - etiqueta anotada;
 - release no draft y no prerelease;
 - CI de candidato, pull request, main, production y tag correcta;

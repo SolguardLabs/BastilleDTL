@@ -66,7 +66,7 @@ func (a Approval) IsUsable(epoch uint64) bool {
 	if a.Decision != ApprovalDecisionApprove {
 		return false
 	}
-	if a.Status != ApprovalActive && a.Status != ApprovalConsumed {
+	if a.Status != ApprovalActive {
 		return false
 	}
 	if a.ExpiresEpoch > 0 && epoch > a.ExpiresEpoch {

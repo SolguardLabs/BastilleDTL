@@ -12,6 +12,7 @@ const expectedDocs = [
     "modelo-economico.md",
     "modelo-seguridad.md",
     "operaciones.md",
+    "reserva-intradia.md",
 ];
 
 test("documentation surface is complete", async () => {
@@ -33,8 +34,8 @@ test("release versions and workflows agree", async () => {
     );
     const ci = await readFile(new URL(".github/workflows/ci.yml", root), "utf8");
 
-    assert.equal(packageManifest.version, "1.0.0");
-    assert.match(versionSource, /Version\s+= "1\.0\.0"/);
+    assert.equal(packageManifest.version, "2.0.0");
+    assert.match(versionSource, /Version\s+= "2\.0\.0"/);
     assert.match(integrity, /origin\/production/);
     assert.match(integrity, /cat-file -t/);
     assert.match(ci, /"v\*"/);

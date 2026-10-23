@@ -14,9 +14,9 @@ flowchart LR
     Main --> MainCI{"CI main"}
     MainCI --> Production["production"]
     Production --> ProdCI{"CI production"}
-    ProdCI --> Tag["v1.0.0 anotado"]
+    ProdCI --> Tag["v2.0.0 anotado"]
     Tag --> TagCI{"CI + integridad"}
-    TagCI --> Release["Production 1.0.0"]
+    TagCI --> Release["Production 2.0.0"]
 ```
 
 ## Herramientas
@@ -105,8 +105,8 @@ git fetch origin
 git switch main
 git pull --ff-only origin main
 git push origin main:production
-git tag -a v1.0.0 -m "Production 1.0.0"
-git push origin v1.0.0
+git tag -a v2.0.0 -m "Production 2.0.0"
+git push origin v2.0.0
 ```
 
 Verificar:
@@ -114,8 +114,8 @@ Verificar:
 ```bash
 git fetch origin main production --tags
 test "$(git rev-parse origin/main)" = "$(git rev-parse origin/production)"
-test "$(git rev-parse origin/main)" = "$(git rev-parse 'v1.0.0^{}')"
-test "$(git cat-file -t refs/tags/v1.0.0)" = "tag"
+test "$(git rev-parse origin/main)" = "$(git rev-parse 'v2.0.0^{}')"
+test "$(git cat-file -t refs/tags/v2.0.0)" = "tag"
 ```
 
 `release-integrity.yml` repite la comparación y valida versiones Go/npm.

@@ -11,7 +11,7 @@ test("reports protocol and schema versions", () => {
     assert.equal(child.status, 0, child.stderr);
     assert.deepEqual(JSON.parse(child.stdout), {
         protocol: "BastilleDTL",
-        version: "1.0.0",
-        schemaVersion: "bastille/v1",
+        version: "2.0.0",
+        schemaVersion: "bastille/v2",
     });
 });

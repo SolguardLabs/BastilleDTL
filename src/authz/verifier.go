@@ -45,10 +45,8 @@ func (v Verifier) Authorize(operation domain.Operation, epoch uint64) (domain.Ap
 	rejected := make([]domain.Approval, 0)
 	seenSigners := map[domain.SignerID]bool{}
 	var weight uint8
-	operationBound := true
-	reuseDetected := false
 	for _, approval := range approvals {
-		if approval.PartialHash != partial {
+		if approval.PartialHash != partial || approval.OperationID != operation.ID || approval.FullHash != full {
 			rejected = append(rejected, approval)
 			continue
 		}
@@ -72,10 +70,6 @@ func (v Verifier) Authorize(operation domain.Operation, epoch uint64) (domain.Ap
 		if !signer.CanApprove(operation.Amount) {
 			return domain.ApprovalBundle{}, domain.Permissionf("signer %s cannot approve amount %s", signer.ID, operation.Amount)
 		}
-		if approval.OperationID != operation.ID || approval.FullHash != full {
-			operationBound = false
-			reuseDetected = true
-		}
 		seenSigners[approval.SignerID] = true
 		weight += signer.Weight
 		accepted = append(accepted, approval)
@@ -88,8 +82,8 @@ func (v Verifier) Authorize(operation domain.Operation, epoch uint64) (domain.Ap
 		Weight:         weight,
 		PartialHash:    partial,
 		FullHash:       full,
-		OperationBound: operationBound,
-		ReuseDetected:  reuseDetected,
+		OperationBound: true,
+		ReuseDetected:  false,
 	}
 	if uint8(len(accepted)) < required || weight < required {
 		return bundle, domain.ApprovalRejectedf("operation %s has %d approvals and weight %d, requires %d", operation.ID, len(accepted), weight, required)

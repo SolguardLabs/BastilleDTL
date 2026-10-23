@@ -1,18 +1,18 @@
 package domain
 
 type EnginePolicy struct {
-	LargeTransferThreshold Money    `json:"largeTransferThreshold"`
-	RequiredApprovals      uint8    `json:"requiredApprovals"`
-	ApprovalTTL            uint64   `json:"approvalTtl"`
-	MaxApprovalAmount      Money    `json:"maxApprovalAmount"`
-	WithdrawalDailyCap     Money    `json:"withdrawalDailyCap"`
-	InternalDailyCap       Money    `json:"internalDailyCap"`
-	AllowApprovalReuse     bool     `json:"allowApprovalReuse"`
-	MinimumSignerWeight    uint8    `json:"minimumSignerWeight"`
-	AllowedApprovalRoles   []Role   `json:"allowedApprovalRoles"`
-	AllowedWithdrawalRails []string `json:"allowedWithdrawalRails"`
-	StrictDestinationCheck bool     `json:"strictDestinationCheck"`
-	RotationDelayEpochs    uint64   `json:"rotationDelayEpochs"`
+	LargeTransferThreshold Money             `json:"largeTransferThreshold"`
+	RequiredApprovals      uint8             `json:"requiredApprovals"`
+	ApprovalTTL            uint64            `json:"approvalTtl"`
+	MaxApprovalAmount      Money             `json:"maxApprovalAmount"`
+	WithdrawalDailyCap     Money             `json:"withdrawalDailyCap"`
+	InternalDailyCap       Money             `json:"internalDailyCap"`
+	MinimumSignerWeight    uint8             `json:"minimumSignerWeight"`
+	AllowedApprovalRoles   []Role            `json:"allowedApprovalRoles"`
+	AllowedWithdrawalRails []string          `json:"allowedWithdrawalRails"`
+	RailStressBps          map[string]uint16 `json:"railStressBps"`
+	StrictDestinationCheck bool              `json:"strictDestinationCheck"`
+	RotationDelayEpochs    uint64            `json:"rotationDelayEpochs"`
 }
 
 func DefaultPolicy() EnginePolicy {
@@ -23,10 +23,10 @@ func DefaultPolicy() EnginePolicy {
 		MaxApprovalAmount:      900000,
 		WithdrawalDailyCap:     700000,
 		InternalDailyCap:       1200000,
-		AllowApprovalReuse:     true,
 		MinimumSignerWeight:    1,
 		AllowedApprovalRoles:   []Role{RoleAdmin, RoleTreasurer, RoleRisk, RoleApprover},
 		AllowedWithdrawalRails: []string{"swift", "sepa", "wire", "ach"},
+		RailStressBps:          map[string]uint16{"swift": 3000, "sepa": 100, "wire": 1500, "ach": 500},
 		StrictDestinationCheck: false,
 		RotationDelayEpochs:    0,
 	}
@@ -61,6 +61,9 @@ func (p EnginePolicy) Normalize() EnginePolicy {
 	if len(p.AllowedWithdrawalRails) == 0 {
 		p.AllowedWithdrawalRails = def.AllowedWithdrawalRails
 	}
+	if len(p.RailStressBps) == 0 {
+		p.RailStressBps = def.RailStressBps
+	}
 	return p
 }
 
@@ -79,6 +82,16 @@ func (p EnginePolicy) Validate() error {
 	}
 	if p.MinimumSignerWeight == 0 {
 		return Invalid("minimum signer weight must be positive")
+	}
+	for rail, stress := range p.RailStressBps {
+		if rail == "" || stress > 10_000 {
+			return Invalid("rail stress configuration is invalid")
+		}
+	}
+	for _, rail := range p.AllowedWithdrawalRails {
+		if _, ok := p.RailStressBps[rail]; !ok {
+			return Invalidf("rail %s requires stress configuration", rail)
+		}
 	}
 	return nil
 }

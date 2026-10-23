@@ -7,10 +7,11 @@ Go. Coordina cuentas multi-activo, movimientos internos, retiros por rails
 externos, límites de exposición, aprobación compuesta, rotación de firmantes y
 reconciliación contable dentro de un servicio determinista.
 
-La versión `1.0.0` incorpora planificación de liquidez intradía, concentración
-por rail, reservas bajo estrés, gobierno Ed25519 y un SDK TypeScript basado en
-`bigint`. Los escenarios JSON permiten reproducir operaciones sin depender de
-servicios remotos.
+La versión `2.0.0` incorpora admisión de reserva por rail en la ruta de
+retirada y vinculación estricta de aprobaciones a la operación completa.
+Mantiene la planificación de liquidez intradía, gobierno Ed25519 y un SDK
+TypeScript basado en `bigint`. Los escenarios JSON permiten reproducir
+operaciones sin depender de servicios remotos.
 
 ## Capacidades
 
@@ -19,9 +20,10 @@ servicios remotos.
 - Movimientos internos y retiros externos con journal contable.
 - Caps por institución, cuenta, activo, clase de operación y ventana.
 - Firmantes ponderados, roles, vigencia y rotación controlada.
-- Aprobaciones con hashes económico y completo, TTL y telemetría de enlace.
+- Aprobaciones consumibles ligadas a ID y hash completo, con TTL y quórum.
 - Netting intradía por cuenta y activo.
 - Reserva base, buffer, add-on de estrés y déficit por activo.
+- Admisión de reserva por rail antes del débito externo, con evaluación por época.
 - Concentración de rails mediante HHI calculado con enteros exactos.
 - Cambios de control firmados con quórum, nonces, timelock y expiración.
 - SDK TypeScript para proyecciones de liquidez y health checks.
@@ -34,7 +36,8 @@ flowchart LR
     Scenario --> Engine["Servicio de ejecución"]
     Engine --> Auth["Firmantes y aprobaciones"]
     Engine --> Exposure["Caps de exposición"]
-    Engine --> Ledger["Ledger y journal"]
+    Engine --> Reserve["Admisión de reserva"]
+    Reserve --> Ledger["Ledger y journal"]
     Engine --> Audit["Auditoría y reportes"]
     Treasury["Planificador de tesorería"] --> Engine
     Control["Comité de control Ed25519"] --> Exposure
@@ -66,6 +69,7 @@ sequenceDiagram
     participant Service as BastilleDTL
     participant Auth as Autorización
     participant Exposure as Exposición
+    participant Reserve as Reserva
     participant Ledger as Ledger
     participant Audit as Auditoría
 
@@ -75,6 +79,8 @@ sequenceDiagram
     Auth-->>Service: bundle de aprobación
     Service->>Exposure: admisión contra caps
     Exposure-->>Service: capacidad proyectada
+    Service->>Reserve: salida proyectada y liquidez
+    Reserve-->>Service: cobertura o rechazo
     Service->>Ledger: transferencia o retiro
     Ledger-->>Service: entrada de journal
     Service->>Exposure: aplicar uso
@@ -118,6 +124,12 @@ railHHIBps = floor(10.000 × Σ railGross(r)² / externalGross²)
 El cálculo usa `math/big`, evitando overflow en los cuadrados. Consulte
 [`docs/modelo-economico.md`](./docs/modelo-economico.md).
 
+La ejecución aplica además un control de reserva antes de cada salida externa.
+El recibo incluye `reserveStress` con bruto proyectado, rails participantes,
+reserva requerida y disponible. Esta admisión por época es distinta de la
+vista de netting para ventanas completas; véase
+[Reserva intradía](./docs/reserva-intradia.md).
+
 ## Inicio rápido
 
 ### Requisitos
@@ -143,8 +155,8 @@ go run ./cmd/bastilledtl version
 ```json
 {
     "protocol": "BastilleDTL",
-    "version": "1.0.0",
-    "schemaVersion": "bastille/v1"
+    "version": "2.0.0",
+    "schemaVersion": "bastille/v2"
 }
 ```
 
@@ -256,6 +268,7 @@ GitHub Actions añade `go test -race ./...`.
 
 - [Arquitectura](./docs/arquitectura.md)
 - [Modelo económico](./docs/modelo-economico.md)
+- [Reserva intradía](./docs/reserva-intradia.md)
 - [Modelo de seguridad](./docs/modelo-seguridad.md)
 - [Gobierno](./docs/gobierno.md)
 - [Operaciones](./docs/operaciones.md)
