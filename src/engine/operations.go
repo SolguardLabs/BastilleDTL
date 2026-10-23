@@ -7,23 +7,25 @@ import (
 	"github.com/solguardlabs/bastilledtl/src/domain"
 	"github.com/solguardlabs/bastilledtl/src/exposure"
 	"github.com/solguardlabs/bastilledtl/src/ledger"
+	"github.com/solguardlabs/bastilledtl/src/treasury"
 )
 
 type ExecutionReceipt struct {
-	Operation       domain.OperationID    `json:"operation"`
-	Kind            domain.OperationKind  `json:"kind"`
-	Institution     domain.InstitutionID  `json:"institution"`
-	SourceAccount   domain.AccountID      `json:"sourceAccount"`
-	Destination     string                `json:"destination"`
-	Asset           domain.AssetID        `json:"asset"`
-	Amount          domain.Money          `json:"amount"`
-	LedgerEntry     domain.LedgerEntryID  `json:"ledgerEntry"`
-	ApprovalBundle  domain.ApprovalBundle `json:"approvalBundle"`
-	Exposure        exposure.Admission    `json:"exposure"`
-	PartialHash     string                `json:"partialHash"`
-	FullHash        string                `json:"fullHash"`
-	ExternalRail    string                `json:"externalRail,omitempty"`
-	ExternalAddress string                `json:"externalAddress,omitempty"`
+	Operation       domain.OperationID          `json:"operation"`
+	Kind            domain.OperationKind        `json:"kind"`
+	Institution     domain.InstitutionID        `json:"institution"`
+	SourceAccount   domain.AccountID            `json:"sourceAccount"`
+	Destination     string                      `json:"destination"`
+	Asset           domain.AssetID              `json:"asset"`
+	Amount          domain.Money                `json:"amount"`
+	LedgerEntry     domain.LedgerEntryID        `json:"ledgerEntry"`
+	ApprovalBundle  domain.ApprovalBundle       `json:"approvalBundle"`
+	Exposure        exposure.Admission          `json:"exposure"`
+	ReserveStress   *treasury.ReserveAssessment `json:"reserveStress,omitempty"`
+	PartialHash     string                      `json:"partialHash"`
+	FullHash        string                      `json:"fullHash"`
+	ExternalRail    string                      `json:"externalRail,omitempty"`
+	ExternalAddress string                      `json:"externalAddress,omitempty"`
 }
 
 type RotationReceipt struct {
@@ -109,6 +111,24 @@ func (s *Service) applyLedger(operation domain.Operation, epoch uint64) (ledger.
 	default:
 		return ledger.Entry{}, domain.Invalidf("unsupported operation kind %s", operation.Kind)
 	}
+}
+
+func (s *Service) reserveCapacity(institution domain.InstitutionID, asset domain.AssetID) (domain.Money, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	available := domain.Money(0)
+	for _, account := range s.accounts {
+		if account.Institution != institution || account.Kind != domain.AccountReserve || !account.Enabled() || !account.AllowsAsset(asset) {
+			continue
+		}
+		balance := s.ledger.Available(account.ID, asset)
+		var err error
+		available, err = available.Add(balance)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return available, nil
 }
 
 func (s *Service) institution(id domain.InstitutionID) (domain.Institution, error) {

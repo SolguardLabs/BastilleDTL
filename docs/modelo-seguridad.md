@@ -31,7 +31,8 @@ flowchart TD
     Account --> Policy{"Importe, rail y límites"}
     Policy --> Approval{"Firmantes, peso y TTL"}
     Approval --> Exposure{"Caps proyectados"}
-    Exposure --> Funds{"Saldo disponible"}
+    Exposure --> Reserve{"Reserva intradía"}
+    Reserve --> Funds{"Saldo disponible"}
     Funds --> Ledger["Entrada de ledger"]
     Ledger --> Apply["Aplicar exposición"]
     Apply --> Audit["Receipt, evento y snapshot"]
@@ -79,12 +80,12 @@ hashes, clase, importe, activo, fuente, epochs, peso y motivo.
 La verificación:
 
 1. resuelve todos los IDs solicitados;
-2. compara el hash económico de la solicitud;
+2. compara ID, hash completo y hash económico de la solicitud;
 3. comprueba decisión, status y TTL;
 4. impide duplicar firmantes en un bundle;
 5. recupera la identidad activa del registro;
 6. valida institución, rol, importe y peso;
-7. informa enlace al objeto completo y señales de auditoría;
+7. exige enlace al objeto completo y marca las aprobaciones usadas como consumidas;
 8. exige número y peso mínimos.
 
 Los receipts deben archivarse junto con `PartialHash`, `FullHash`, signer IDs y
@@ -158,6 +159,11 @@ controles incluyen:
 
 El HHI usa enteros arbitrarios para no perder seguridad por overflow en
 `amount²`.
+
+La ejecución de un retiro consulta además el control de
+[reserva intradía](reserva-intradia.md) antes de modificar ledger y exposición.
+El control se serializa por operación y solo incorpora una salida al bruto
+de la época después de un recibo confirmado.
 
 ## Gobierno Ed25519
 

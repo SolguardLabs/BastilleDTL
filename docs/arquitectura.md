@@ -144,6 +144,11 @@ ningún componente de saldo sea negativo.
 Recibe instrucciones, reservas y límites y devuelve posiciones, resúmenes por
 rail, cobertura por activo, motivos y digest.
 
+`treasury.ReserveGate` es el control preventivo de retiradas: acumula el bruto
+confirmado por rail durante la época y evalúa la reserva disponible antes del
+débito externo. Solo confirma un nuevo uso después del receipt. Ambos
+componentes comparten tipos monetarios, pero tienen horizontes distintos.
+
 ```mermaid
 flowchart LR
     Instructions["Instrucciones"] --> Validate["Ventana, IDs y cardinalidad"]

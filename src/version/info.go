@@ -2,8 +2,8 @@ package version
 
 const (
 	Protocol      = "BastilleDTL"
-	Version       = "1.0.0"
-	SchemaVersion = "bastille/v1"
+	Version       = "2.0.0"
+	SchemaVersion = "bastille/v2"
 )
 
 type Info struct {

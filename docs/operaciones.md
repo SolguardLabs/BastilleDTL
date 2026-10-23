@@ -32,8 +32,8 @@ Antes de operar una release:
 git fetch origin main production --tags
 git rev-parse origin/main
 git rev-parse origin/production
-git rev-parse 'v1.0.0^{}'
-git cat-file -t refs/tags/v1.0.0
+git rev-parse 'v2.0.0^{}'
+git cat-file -t refs/tags/v2.0.0
 ```
 
 Los tres commits deben coincidir y el último comando debe devolver `tag`.
@@ -56,6 +56,8 @@ Validar el bootstrap:
 - firmantes referencian principals existentes;
 - balances no negativos;
 - caps con límite positivo;
+- tasas de estrés definidas para todos los rails permitidos;
+- cuentas de reserva activas con liquidez disponible por activo;
 - política normalizada y válida.
 
 ## Smoke test
@@ -110,6 +112,7 @@ Métricas recomendadas:
 - firmantes activos por rol y peso;
 - posiciones netas por cuenta;
 - reserva requerida, estresada y disponible;
+- `reserveStress` por recibo y rechazos por reserva intradía;
 - shortfall por activo;
 - cuota y HHI de rails;
 - cambios pendientes, tiempo de timelock y expiración;
@@ -128,6 +131,11 @@ Métricas recomendadas:
 | race detector              |            n/a | cualquier reporte |
 
 Los umbrales efectivos se aprueban mediante gobierno.
+
+La mesa debe comparar la estimación de cada retirada con el saldo disponible
+en cuentas de reserva activas. Un rechazo de admisión no debe producir débito
+ni incrementar exposición. El detalle de configuración y recibos figura en
+[Reserva intradía](reserva-intradia.md).
 
 ## Reconciliación
 

@@ -17,8 +17,12 @@ permissions:
 
 jobs:
     verify:
-        name: Go and TypeScript checks
-        runs-on: ubuntu-latest
+        name: Go and TypeScript checks (${{ matrix.os }})
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
         timeout-minutes: 20
         steps:
             - name: Checkout
@@ -37,7 +41,14 @@ jobs:
                   cache: npm
 
             - name: Run repository checks
+              if: matrix.os == 'ubuntu-latest'
               run: bash scripts/ci.sh
 
+            - name: Run repository checks on Windows
+              if: matrix.os == 'windows-latest'
+              shell: pwsh
+              run: ./scripts/ci.ps1
+
             - name: Run race detector
+              if: matrix.os == 'ubuntu-latest'
               run: go test -race ./...

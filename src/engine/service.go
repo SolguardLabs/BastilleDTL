@@ -7,10 +7,12 @@ import (
 	"github.com/solguardlabs/bastilledtl/src/domain"
 	"github.com/solguardlabs/bastilledtl/src/exposure"
 	"github.com/solguardlabs/bastilledtl/src/ledger"
+	"github.com/solguardlabs/bastilledtl/src/treasury"
 )
 
 type Service struct {
 	mu           sync.Mutex
+	executionMu  sync.Mutex
 	epoch        uint64
 	operationSeq uint64
 	eventSeq     uint64
@@ -24,6 +26,7 @@ type Service struct {
 	signers      *authz.SignerRegistry
 	approvals    *authz.ApprovalRegistry
 	verifier     authz.Verifier
+	reserveGate  *treasury.ReserveGate
 	operations   map[domain.OperationID]domain.OperationRecord
 	events       []domain.Event
 }
@@ -73,6 +76,7 @@ func NewService(bootstrap Bootstrap) (*Service, error) {
 		signers:      signers,
 		approvals:    approvalRegistry,
 		verifier:     authz.NewVerifier(signers, approvalRegistry, bootstrap.Policy.Normalize()),
+		reserveGate:  treasury.NewReserveGate(bootstrap.Policy.Normalize()),
 		operations:   make(map[domain.OperationID]domain.OperationRecord),
 		events:       make([]domain.Event, 0, 128),
 	}
@@ -96,6 +100,8 @@ func (s *Service) AdvanceEpoch(delta uint64) uint64 {
 	if delta == 0 {
 		delta = 1
 	}
+	s.executionMu.Lock()
+	defer s.executionMu.Unlock()
 	s.mu.Lock()
 	s.epoch += delta
 	epoch := s.epoch
@@ -132,9 +138,14 @@ func (s *Service) Approve(request domain.ApprovalRequest) (domain.Approval, erro
 }
 
 func (s *Service) Execute(operation domain.Operation) (ExecutionReceipt, error) {
+	s.executionMu.Lock()
+	defer s.executionMu.Unlock()
 	epoch := s.Epoch()
 	if operation.ID == "" {
 		operation.ID = s.nextOperationID()
+	}
+	if s.operationExists(operation.ID) {
+		return ExecutionReceipt{}, domain.Invalidf("operation %s is already recorded", operation.ID)
 	}
 	partial := authz.PartialEconomicHash(operation)
 	full := authz.FullOperationHash(operation)
@@ -158,6 +169,20 @@ func (s *Service) Execute(operation domain.Operation) (ExecutionReceipt, error) 
 		s.rejectOperation(operation.ID, err.Error())
 		return ExecutionReceipt{}, err
 	}
+	var stress *treasury.ReserveAssessment
+	if operation.Kind == domain.OperationWithdrawal {
+		available, err := s.reserveCapacity(operation.Institution, operation.Asset)
+		if err != nil {
+			s.rejectOperation(operation.ID, err.Error())
+			return ExecutionReceipt{}, err
+		}
+		assessment, err := s.reserveGate.Preview(operation, epoch, available)
+		if err != nil {
+			s.rejectOperation(operation.ID, err.Error())
+			return ExecutionReceipt{}, err
+		}
+		stress = &assessment
+	}
 	entry, err := s.applyLedger(operation, epoch)
 	if err != nil {
 		s.rejectOperation(operation.ID, err.Error())
@@ -170,6 +195,9 @@ func (s *Service) Execute(operation domain.Operation) (ExecutionReceipt, error) 
 		return ExecutionReceipt{}, err
 	}
 	s.approvals.MarkUsed(bundle.Accepted, operation, epoch)
+	if stress != nil {
+		s.reserveGate.Commit(*stress)
+	}
 	receipt := ExecutionReceipt{
 		Operation:       operation.ID,
 		Kind:            operation.Kind,
@@ -181,6 +209,7 @@ func (s *Service) Execute(operation domain.Operation) (ExecutionReceipt, error) 
 		LedgerEntry:     entry.ID,
 		ApprovalBundle:  bundle,
 		Exposure:        admission,
+		ReserveStress:   stress,
 		PartialHash:     partial,
 		FullHash:        full,
 		ExternalRail:    operation.ExternalRail,
@@ -268,4 +297,11 @@ func (s *Service) nextOperationID() domain.OperationID {
 	defer s.mu.Unlock()
 	s.operationSeq++
 	return domain.NewOperationID(s.epoch, s.operationSeq)
+}
+
+func (s *Service) operationExists(id domain.OperationID) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	_, exists := s.operations[id]
+	return exists
 }
